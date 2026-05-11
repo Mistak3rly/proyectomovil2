@@ -8,32 +8,21 @@ class GalponService {
   // o 10.0.2.2 para el emulador de Android)
   final String _baseUrl = Envs.baseUrl; 
 
-  /// CU01: Gestionar Inicio de Sesión [cite: 608]
+  /// CU01: Gestionar Inicio de Sesión (MOCK)
   Future<Usuario?> login(String username, String password) async {
-    final url = Uri.parse('$_baseUrl/usuarios/login/');
+    // Simulación de delay para realismo
+    await Future.delayed(const Duration(seconds: 1));
 
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'nom_usuario': username,
-          'password': password,
-        }),
+    if (username == 'juan' && password == '12345') {
+      return Usuario(
+        id: 999,
+        nomUsuario: 'juan',
+        email: 'juan@admin.com',
+        tipoUsuario: 'OPERADOR',
+        estado: 'ACTIVO',
       );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        // Guardar token de forma segura (Cumple RNF-02: Seguridad) 
-        // await _storage.write(key: 'jwt_token', value: data['access']);
-        return Usuario.fromJson(data['usuario']);
-      } else {
-        return null;
-      }
-    } catch (e) {
-      return null;
     }
+    return null;
   }
 
 }

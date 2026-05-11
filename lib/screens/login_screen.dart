@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movil_avicola/models/user_model.dart';
 import '../services/auth_service.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,8 +11,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _userController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _userController = TextEditingController(text: 'juan');
+  final TextEditingController _passwordController =
+      TextEditingController(text: '12345');
   final AuthService _authService = AuthService();
   bool _isLoading = false;
 
@@ -249,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
       print('email : ${res.email}');
       print('tipo usuario : ${res.tipoUsuario}');
       print('estado : ${res.estado}');
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      if (context.mounted) context.go('/dashboard');
     } else {
       print('Error al iniciar sesión');
     }
