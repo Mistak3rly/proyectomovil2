@@ -99,10 +99,10 @@ class MortalityAnalysisScreen extends StatelessWidget {
   Widget _buildLineChart(List<MortalityRecord> records) {
     if (records.isEmpty) return const Center(child: Text('No hay datos suficientes'));
     
-    // Agrupar por día de vida
+    // Agrupar por día del mes
     Map<int, int> dailyCounts = {};
     for (var r in records) {
-      dailyCounts[r.dayOfLife] = (dailyCounts[r.dayOfLife] ?? 0) + r.count;
+      dailyCounts[r.timestamp.day] = (dailyCounts[r.timestamp.day] ?? 0) + r.count;
     }
 
     List<FlSpot> spots = dailyCounts.entries.map((e) => FlSpot(e.key.toDouble(), e.value.toDouble())).toList();

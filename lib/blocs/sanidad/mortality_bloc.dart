@@ -29,10 +29,8 @@ class MortalityBloc extends Bloc<MortalityEvent, MortalityState> {
         lotId: event.lotId,
         count: event.count,
         cause: event.cause,
-        observations: event.observations,
+        observacion: event.observations,
         timestamp: DateTime.now(),
-        userId: 999, // Simulado
-        dayOfLife: event.currentDayOfLife,
       );
       
       await service.postMortality(record);

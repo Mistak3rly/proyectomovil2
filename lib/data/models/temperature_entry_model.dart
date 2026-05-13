@@ -9,17 +9,17 @@ class TemperatureEntryModel extends TemperatureEntry {
 
   factory TemperatureEntryModel.fromJson(Map<String, dynamic> json) {
     return TemperatureEntryModel(
-      shedId: json['shedId'],
-      value: (json['value'] as num).toDouble(),
-      timestamp: DateTime.parse(json['timestamp']),
+      shedId: json['id_galpon'],
+      value: (json['temperatura'] as num).toDouble(),
+      timestamp: DateTime.parse(json['fecha_hora']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'shedId': shedId,
-      'value': value,
-      'timestamp': timestamp.toIso8601String(),
+      'id_galpon': shedId,
+      'temperatura': value,
+      'fecha_hora': timestamp.toIso8601String(),
     };
   }
 }

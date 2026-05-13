@@ -1,61 +1,95 @@
 // CU09: Monitorear temperatura en tiempo real
 import 'dart:async';
-import 'dart:math';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../domain/entities/realtime_climate.dart';
 import '../models/galpon_model.dart';
+import '../config/envs.dart';
+import 'auth_service.dart';
 
 class RealtimeClimateService {
-  final Random _random = Random();
-  
-  // Simulated initial sheds
-  final List<GalponModel> _sheds = [
-    GalponModel(id: 1, nombre: 'Galpón A'),
-    GalponModel(id: 2, nombre: 'Galpón B'),
-    GalponModel(id: 3, nombre: 'Galpón C'),
-  ];
+  final String _baseUrl = Envs.baseUrl;
+  final AuthService _authService = AuthService();
 
+  // Obtenemos los galpones activos para los filtros de la pantalla
   Future<List<GalponModel>> getGalpones() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return _sheds;
+    try {
+      final token = await _authService.getToken();
+      final response = await http.get(
+        Uri.parse('$_baseUrl/galpones/'), // Asumimos que tienes este endpoint para la lista del dropdown
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => GalponModel.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Error al obtener galpones: $e');
+      // Devuelve algunos de prueba si falla la API
+      return [
+        GalponModel(id: 1, nombre: 'Galpón A (Fallback)'),
+        GalponModel(id: 2, nombre: 'Galpón B (Fallback)'),
+      ];
+    }
   }
 
-  // Stream that yields new climate data every 2 seconds
+  // Stream que hace HTTP Polling cada 5 segundos al backend
   Stream<List<RealtimeClimate>> getClimateStream() async* {
     while (true) {
-      await Future.delayed(const Duration(seconds: 2));
-      
-      List<RealtimeClimate> currentClimate = _sheds.map((shed) {
-        // Simulate data
-        double temp = 15 + _random.nextDouble() * 25; // 15 to 40
-        double hum = 40 + _random.nextDouble() * 40;  // 40 to 80
-        bool online = _random.nextDouble() > 0.1;     // 10% chance to be offline
-
-        ClimateStatus status;
-        if (temp >= 20 && temp <= 26 && hum >= 50 && hum <= 70) {
-          status = ClimateStatus.optimal;
-        } else if (temp < 18 || temp > 30 || hum < 40 || hum > 80) {
-          status = ClimateStatus.critical;
-        } else {
-          status = ClimateStatus.caution;
-        }
-
-        // If offline, values might be 0 or keep last known, we will mock as 0 for simplicity
-        if (!online) {
-          temp = 0.0;
-          hum = 0.0;
-        }
-
-        return RealtimeClimate(
-          shedId: shed.id,
-          shedName: shed.nombre,
-          temperature: temp,
-          humidity: hum,
-          isSensorOnline: online,
-          status: status,
+      try {
+        final token = await _authService.getToken();
+        final response = await http.get(
+          Uri.parse('$_baseUrl/temperatura/tiempo-real/'),
+          headers: {
+            'Content-Type': 'application/json',
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
         );
-      }).toList();
 
-      yield currentClimate;
+        if (response.statusCode == 200) {
+          // El backend devuelve una lista de diccionarios JSON con las temperaturas
+          final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+          final climates = data.map((json) => RealtimeClimate.fromJson(json)).toList();
+          
+          yield climates;
+        } else {
+          print('Error del servidor: ${response.statusCode} - ${response.body}');
+        }
+      } catch (e) {
+        print('Excepción conectando al socket simulado (API): $e');
+      }
+
+      // El backend menciona que el frontend debe llamar cada 5 segundos
+      await Future.delayed(const Duration(seconds: 5));
+    }
+  }
+  // CU10: Generación de alertas por cambios de temperatura
+  Future<List<RealtimeClimate>> getAlertas() async {
+    try {
+      final token = await _authService.getToken();
+      final response = await http.get(
+        Uri.parse('$_baseUrl/temperatura/alertas/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data.map((json) => RealtimeClimate.fromJson(json)).toList();
+      } else {
+        print('Error al obtener alertas: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Excepción al obtener alertas: $e');
+      return [];
     }
   }
 }

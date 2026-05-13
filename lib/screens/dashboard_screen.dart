@@ -5,6 +5,9 @@ import '../widgets/dashboard/operator_drawer.dart';
 import '../widgets/dashboard/kpi_card.dart';
 import '../widgets/dashboard/alert_list.dart';
 import '../widgets/dashboard/task_list.dart';
+import '../services/sanidad_service.dart';
+import '../services/realtime_climate_service.dart';
+import 'alimentacion_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,7 +22,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Lista de vistas para las 5 subdivisiones
   final List<Widget> _views = [
     const _PlaceholderView(title: 'Producción (Lotes)', icon: Icons.analytics_outlined),
-    const _PlaceholderView(title: 'Alimentación', icon: Icons.restaurant_menu),
+    const AlimentacionScreen(),
     const _HomeView(), // Inicio (Dashboard)
     const _SanidadView(), // Sanidad
     const _IotView(), // Ambiente (IoT)
@@ -68,11 +71,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class _HomeView extends StatelessWidget {
+class _HomeView extends StatefulWidget {
   const _HomeView();
 
   @override
+  State<_HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<_HomeView> {
+  final SanidadService _sanidadService = SanidadService();
+  final RealtimeClimateService _climateService = RealtimeClimateService();
+
+  int _totalAves = 0;
+  int _alertasActivas = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final lotes = await _sanidadService.getActiveLots();
+      final aves = lotes.fold(0, (sum, l) => sum + l.poblacionActual);
+      
+      final alertas = await _climateService.getAlertas();
+      
+      if (mounted) {
+        setState(() {
+          _totalAves = aves;
+          _alertasActivas = alertas.length;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -92,26 +140,26 @@ class _HomeView extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 15),
-          const SingleChildScrollView(
+          SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
                 KPICard(
                   title: "Población Total",
-                  value: "15,420",
-                  icon: Icons.egg_outlined,
+                  value: "$_totalAves",
+                  icon: Icons.pets,
                 ),
                 KPICard(
-                  title: "Clima Actual",
-                  value: "28°C / 65%",
-                  icon: Icons.thermostat,
-                  color: Colors.blueAccent,
+                  title: "Alertas Activas",
+                  value: "$_alertasActivas",
+                  icon: Icons.warning_amber_rounded,
+                  color: _alertasActivas > 0 ? Colors.redAccent : Colors.green,
                 ),
-                KPICard(
+                const KPICard(
                   title: "Alimento (Stock)",
-                  value: "450 Kg",
+                  value: "-- Kg",
                   icon: Icons.inventory_2,
-                  color: Colors.green,
+                  color: Colors.blueAccent,
                 ),
               ],
             ),

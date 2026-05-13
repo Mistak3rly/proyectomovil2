@@ -1,56 +1,89 @@
-import 'dart:math';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../config/envs.dart';
 import '../models/lote_model.dart';
 import '../domain/entities/mortality_record.dart';
 import '../domain/entities/tratamiento_model.dart';
 import '../domain/entities/vacunacion_model.dart';
+import 'auth_service.dart';
 
 class SanidadService {
-  final List<MortalityRecord> _mockRecords = [];
+  final String _baseUrl = Envs.baseUrl;
+  final AuthService _authService = AuthService();
 
+  // Obtener lotes activos desde el backend
   Future<List<LoteModel>> getActiveLots() async {
-    await Future.delayed(const Duration(milliseconds: 800));
-    return [
-      LoteModel(id: 1, nombre: 'Lote 1 (Galpón A)', poblacionInicial: 10000, poblacionActual: 9800, diasDeVida: 15),
-      LoteModel(id: 2, nombre: 'Lote 2 (Galpón B)', poblacionInicial: 15000, poblacionActual: 14950, diasDeVida: 5),
-    ];
+    try {
+      final token = await _authService.getToken();
+      final response = await http.get(
+        Uri.parse('$_baseUrl/lotes/'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        return data.map((json) => LoteModel.fromJson(json)).toList();
+      } else {
+        throw Exception('Error al obtener lotes: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Aviso: Error de red o endpoint no listo ($e)');
+      rethrow; // Lanzar el error real para que la UI sepa que falló
+    }
   }
 
+  // CU13: Registrar mortandad
   Future<void> postMortality(MortalityRecord record) async {
-    await Future.delayed(const Duration(seconds: 1));
-    // Simulated validation
-    if (record.count <= 0) throw Exception('Cantidad debe ser positiva');
-    _mockRecords.add(record);
+    final token = await _authService.getToken();
+    final response = await http.post(
+      Uri.parse('$_baseUrl/mortandad/'),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(record.toJson()),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Error al registrar mortandad: ${response.body}');
+    }
   }
 
+  // CU13: Obtener registros de mortandad
   Future<List<MortalityRecord>> getMortalityRecords(int? lotId) async {
-    await Future.delayed(const Duration(seconds: 1));
-    if (lotId == null) return _mockRecords;
-    return _mockRecords.where((r) => r.lotId == lotId).toList();
+    final token = await _authService.getToken();
+    final uri = lotId != null 
+        ? Uri.parse('$_baseUrl/mortandad/?lote=$lotId')
+        : Uri.parse('$_baseUrl/mortandad/');
+        
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+      return data.map((json) => MortalityRecord.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al obtener mortandad: ${response.statusCode}');
+    }
   }
   
-  // Para CU14: Gráficos de análisis (Simulación de datos)
+  // CU14: Gráficos de análisis (Usar historial real)
   Future<List<MortalityRecord>> getMockHistoryForAnalysis(int lotId) async {
-    await Future.delayed(const Duration(seconds: 1));
-    final random = Random();
-    List<MortalityRecord> history = [];
-    final causes = ['Calor', 'Aplastamiento', 'Enfermedad', 'Depredación', 'Otros'];
-    
-    // Simular los últimos 15 días
-    for (int i = 1; i <= 15; i++) {
-      int count = random.nextInt(10); // 0 a 9 bajas diarias
-      if (count > 0) {
-        history.add(MortalityRecord(
-          lotId: lotId,
-          count: count,
-          cause: causes[random.nextInt(causes.length)],
-          timestamp: DateTime.now().subtract(Duration(days: 15 - i)),
-          userId: 999,
-          dayOfLife: i,
-        ));
-      }
+    try {
+      // Ya no usamos mock, traemos el historial real del lote para los gráficos
+      return await getMortalityRecords(lotId);
+    } catch (e) {
+      print('Error al obtener historial para gráficos: $e');
+      return [];
     }
-    history.addAll(_mockRecords.where((r) => r.lotId == lotId));
-    return history;
   }
 
   Future<void> postTratamiento(TratamientoModel t) async {

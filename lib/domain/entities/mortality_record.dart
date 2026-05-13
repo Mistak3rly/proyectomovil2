@@ -5,22 +5,39 @@ class MortalityRecord extends Equatable {
   final int lotId;
   final int count;
   final String cause;
-  final String? observations;
   final DateTime timestamp;
-  final int userId;
-  final int dayOfLife; // Día del ciclo de vida en el que ocurrió
+  final String? observacion;
 
   const MortalityRecord({
     this.id,
     required this.lotId,
     required this.count,
     required this.cause,
-    this.observations,
     required this.timestamp,
-    required this.userId,
-    required this.dayOfLife,
+    this.observacion,
   });
 
+  factory MortalityRecord.fromJson(Map<String, dynamic> json) {
+    return MortalityRecord(
+      id: json['id_muerte'],
+      lotId: json['lote'],
+      count: json['cantidad'],
+      cause: json['causa'] ?? 'No especificada',
+      timestamp: json['fecha_hora'] != null ? DateTime.parse(json['fecha_hora']) : DateTime.now(),
+      observacion: json['observacion'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'lote': lotId,
+      'cantidad': count,
+      'causa': cause,
+      'fecha_hora': timestamp.toIso8601String(),
+      if (observacion != null) 'observacion': observacion,
+    };
+  }
+
   @override
-  List<Object?> get props => [id, lotId, count, cause, observations, timestamp, userId, dayOfLife];
+  List<Object?> get props => [id, lotId, count, cause, timestamp, observacion];
 }
