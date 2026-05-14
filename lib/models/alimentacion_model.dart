@@ -26,8 +26,10 @@ class AlimentacionModel {
       insumoId: json['insumo_id'],
       insumoNombre: json['insumo_nombre'],
       fecha: DateTime.parse(json['fecha']),
-      cantidadKg: (json['cantidad_kg'] as num).toDouble(),
-      tipoAlimento: json['tipo_alimento'],
+      cantidadKg: json['cantidad_kg'] is String 
+          ? double.parse(json['cantidad_kg']) 
+          : (json['cantidad_kg'] as num).toDouble(),
+      tipoAlimento: json['tipo_alimento'] ?? 'No especificado',
       observacion: json['observacion'],
     );
   }

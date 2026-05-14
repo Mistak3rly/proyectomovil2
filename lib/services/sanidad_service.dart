@@ -87,10 +87,52 @@ class SanidadService {
   }
 
   Future<void> postTratamiento(TratamientoModel t) async {
-    await Future.delayed(const Duration(seconds: 1));
+    final token = await _authService.getToken();
+    final response = await http.post(
+      Uri.parse('$_baseUrl/sanitario/aplicaciones/'), // Endpoint inferido del backend
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'lote': int.tryParse(t.animalId) ?? 1,
+        'tipo_tratamiento': 'Tratamiento Médico',
+        'insumo': null, // Asumimos null si no hay insumo_id en TratamientoModel
+        'dosis': 1.0,   // Valores por defecto para cumplir con el serializer
+        'unidad_dosis': 'U',
+        'responsable': t.veterinario,
+        'observacion': '${t.diagnostico}: ${t.medicamento}',
+        'fecha_aplicacion': t.fechaInicio.toIso8601String().split('T')[0],
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      print('Advertencia: Error al registrar tratamiento ${response.body}');
+    }
   }
 
   Future<void> postVacunacion(VacunacionModel v) async {
-    await Future.delayed(const Duration(seconds: 1));
+    final token = await _authService.getToken();
+    final response = await http.post(
+      Uri.parse('$_baseUrl/sanitario/aplicaciones/'),
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'lote': int.tryParse(v.animalId) ?? 1,
+        'tipo_tratamiento': 'Vacunación',
+        'insumo': null,
+        'dosis': 1.0,
+        'unidad_dosis': 'Dosis',
+        'responsable': v.veterinario,
+        'observacion': 'Vacuna: ${v.vacuna}',
+        'fecha_aplicacion': v.fechaAplicacion.toIso8601String().split('T')[0],
+      }),
+    );
+
+    if (response.statusCode != 201) {
+      print('Advertencia: Error al registrar vacunación ${response.body}');
+    }
   }
 }

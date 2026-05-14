@@ -4,6 +4,6 @@
 }*/
 
 class Envs {
-  // IP de tu computadora (para que el celular físico se pueda conectar)
-  static String baseUrl = "http://192.168.1.4:8000"; 
+  // IP de tu computadora o servidor en la nube
+  static String baseUrl = "https://mejorasp-production.up.railway.app"; 
 }

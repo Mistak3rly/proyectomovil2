@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 
 class AlertList extends StatelessWidget {
-  const AlertList({super.key});
+  final List<dynamic> insumosCriticos;
+
+  const AlertList({super.key, required this.insumosCriticos});
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> alerts = [
-      {
-        'title': 'Temperatura Alta',
-        'desc': 'Galpón 3 superó los 28°C.',
-        'icon': Icons.warning_amber_rounded,
-        'color': Colors.redAccent,
-      },
-      {
-        'title': 'Stock Bajo',
-        'desc': 'Quedan 2 días de alimento.',
+    final List<Map<String, dynamic>> alerts = insumosCriticos.map((insumo) {
+      return {
+        'title': 'Stock Crítico: ${insumo['nombre']}',
+        'desc': 'Quedan ${insumo['stock_actual']} ${insumo['unidad_medida']} (Mínimo: ${insumo['stock_minimo']})',
         'icon': Icons.inventory_2_outlined,
-        'color': Colors.orangeAccent,
-      },
-    ];
+        'color': Colors.redAccent,
+      };
+    }).toList();
+
+    if (alerts.isEmpty) {
+      return const SizedBox(); // No mostrar nada si no hay alertas
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

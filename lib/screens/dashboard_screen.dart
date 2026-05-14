@@ -7,7 +7,9 @@ import '../widgets/dashboard/alert_list.dart';
 import '../widgets/dashboard/task_list.dart';
 import '../services/sanidad_service.dart';
 import '../services/realtime_climate_service.dart';
+import '../services/reportes_service.dart';
 import 'alimentacion_screen.dart';
+import 'lotes_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -21,7 +23,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // Lista de vistas para las 5 subdivisiones
   final List<Widget> _views = [
-    const _PlaceholderView(title: 'Producción (Lotes)', icon: Icons.analytics_outlined),
+    const LotesScreen(), // Lotes
     const AlimentacionScreen(),
     const _HomeView(), // Inicio (Dashboard)
     const _SanidadView(), // Sanidad
@@ -79,11 +81,9 @@ class _HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<_HomeView> {
-  final SanidadService _sanidadService = SanidadService();
-  final RealtimeClimateService _climateService = RealtimeClimateService();
+  final ReportesService _reportesService = ReportesService();
 
-  int _totalAves = 0;
-  int _alertasActivas = 0;
+  Map<String, dynamic>? _dashboardData;
   bool _isLoading = true;
 
   @override
@@ -94,15 +94,10 @@ class _HomeViewState extends State<_HomeView> {
 
   Future<void> _loadData() async {
     try {
-      final lotes = await _sanidadService.getActiveLots();
-      final aves = lotes.fold(0, (sum, l) => sum + l.poblacionActual);
-      
-      final alertas = await _climateService.getAlertas();
-      
+      final data = await _reportesService.getDashboard();
       if (mounted) {
         setState(() {
-          _totalAves = aves;
-          _alertasActivas = alertas.length;
+          _dashboardData = data;
           _isLoading = false;
         });
       }
@@ -120,6 +115,11 @@ class _HomeViewState extends State<_HomeView> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
+
+    final data = _dashboardData ?? {};
+    final totalAves = data['aves_activas'] ?? 0;
+    final alertasActivas = data['insumos_criticos_count'] ?? 0; // Or other logic
+    final consumoMesKg = data['consumo_mes_kg'] ?? 0.0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20.0),
@@ -146,18 +146,18 @@ class _HomeViewState extends State<_HomeView> {
               children: [
                 KPICard(
                   title: "Población Total",
-                  value: "$_totalAves",
+                  value: "$totalAves",
                   icon: Icons.pets,
                 ),
                 KPICard(
-                  title: "Alertas Activas",
-                  value: "$_alertasActivas",
+                  title: "Insumos Críticos",
+                  value: "$alertasActivas",
                   icon: Icons.warning_amber_rounded,
-                  color: _alertasActivas > 0 ? Colors.redAccent : Colors.green,
+                  color: alertasActivas > 0 ? Colors.redAccent : Colors.green,
                 ),
-                const KPICard(
-                  title: "Alimento (Stock)",
-                  value: "-- Kg",
+                KPICard(
+                  title: "Alimento (Mes)",
+                  value: "${consumoMesKg} Kg",
                   icon: Icons.inventory_2,
                   color: Colors.blueAccent,
                 ),
@@ -168,7 +168,7 @@ class _HomeViewState extends State<_HomeView> {
           const SizedBox(height: 30),
 
           // Alertas
-          const AlertList(),
+          AlertList(insumosCriticos: data['insumos_criticos'] ?? []),
 
           const SizedBox(height: 30),
 

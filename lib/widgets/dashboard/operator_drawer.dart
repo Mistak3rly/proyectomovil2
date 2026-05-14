@@ -47,6 +47,15 @@ class OperatorDrawer extends StatelessWidget {
                   onTap: () {},
                 ),
                 _buildDrawerItem(
+                  icon: Icons.record_voice_over,
+                  title: 'Reportes Inteligentes',
+                  subtitle: 'Consultar reportes con tu voz (IA)',
+                  color: Colors.blueAccent,
+                  onTap: () {
+                    context.push('/voice_reports');
+                  },
+                ),
+                _buildDrawerItem(
                   icon: Icons.settings_outlined,
                   title: 'Configuración',
                   subtitle: 'Notificaciones y modo oscuro',
