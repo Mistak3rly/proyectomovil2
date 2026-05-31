@@ -327,6 +327,16 @@ class _SanidadView extends StatelessWidget {
           
           _buildActionCard(
             context,
+            title: 'Registrar Crecimiento (CU18)',
+            description: 'Controlar peso y desarrollo del lote de aves.',
+            icon: Icons.monitor_weight_outlined,
+            color: const Color(0xFFE67E22),
+            route: '/registrar_crecimiento',
+          ),
+          const SizedBox(height: 16),
+
+          _buildActionCard(
+            context,
             title: 'Tratamientos y Vacunas',
             description: 'Registrar y visualizar actividades sanitarias.',
             icon: Icons.vaccines,
