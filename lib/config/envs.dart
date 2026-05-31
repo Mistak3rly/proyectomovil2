@@ -5,5 +5,6 @@
 
 class Envs {
   // IP de tu computadora o servidor en la nube
-  static String baseUrl = "https://mejorasp-production.up.railway.app"; 
+  //static String baseUrl = "https://mejorasp-production.up.railway.app";
+  static String baseUrl = "http://192.168.1.9:8000";
 }
