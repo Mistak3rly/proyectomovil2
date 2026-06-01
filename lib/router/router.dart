@@ -8,6 +8,7 @@ import 'package:movil_avicola/screens/mortality_analysis_screen.dart';
 import 'package:movil_avicola/screens/sanidad_activities_screen.dart';
 import 'package:movil_avicola/screens/voice_reports_screen.dart';
 import 'package:movil_avicola/screens/registro_enfermedad_screen.dart';
+import 'package:movil_avicola/screens/registrar_crecimiento_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -45,5 +46,9 @@ final router = GoRouter(
       path: '/voice_reports',
       builder: (context, state) => const VoiceReportsScreen(),
     ),
-  ],
+    GoRoute(
+      path: '/registrar_crecimiento',
+      builder: (context, state) => const RegistrarCrecimientoScreen(),
+    ),
+  ]
 );

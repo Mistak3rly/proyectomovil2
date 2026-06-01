@@ -11,9 +11,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _userController = TextEditingController(text: 'juan');
-  final TextEditingController _passwordController =
-      TextEditingController(text: '12345');
+  final TextEditingController _userController = TextEditingController(
+    text: 'juan',
+  );
+  final TextEditingController _passwordController = TextEditingController(
+    text: '12345',
+  );
   final AuthService _authService = AuthService();
   bool _isLoading = false;
 
@@ -240,12 +243,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() async {
     setState(() => _isLoading = true);
-    Usuario? res = await _authService.login(
+    final result = await _authService.login(
       _userController.text,
       _passwordController.text,
     );
     setState(() => _isLoading = false);
-    if (res != null) {
+    if (result.user != null) {
+      final res = result.user!;
       print('Inicio de sesión exitoso');
       print('nombre usuario : ${res.nomUsuario}');
       print('email : ${res.email}');
@@ -253,7 +257,11 @@ class _LoginScreenState extends State<LoginScreen> {
       print('estado : ${res.estado}');
       if (context.mounted) context.go('/dashboard');
     } else {
-      print('Error al iniciar sesión');
+      final message = result.error ?? 'Error al iniciar sesión';
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 }

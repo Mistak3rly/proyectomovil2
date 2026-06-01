@@ -6,6 +6,7 @@ import '../widgets/dashboard/kpi_card.dart';
 import '../widgets/dashboard/alert_list.dart';
 import '../widgets/dashboard/task_list.dart';
 import '../services/sanidad_service.dart';
+import '../models/lote_model.dart';
 import '../services/realtime_climate_service.dart';
 import '../services/reportes_service.dart';
 import 'alimentacion_screen.dart';
@@ -362,6 +363,16 @@ class _SanidadView extends StatelessWidget {
 
           _buildActionCard(
             context,
+            title: 'Registrar Crecimiento (CU18)',
+            description: 'Controlar peso y desarrollo del lote de aves.',
+            icon: Icons.monitor_weight_outlined,
+            color: const Color(0xFFE67E22),
+            route: '/registrar_crecimiento',
+          ),
+          const SizedBox(height: 16),
+
+          _buildActionCard(
+            context,
             title: 'Tratamientos y Vacunas',
             description: 'Registrar y visualizar actividades sanitarias.',
             icon: Icons.vaccines,
@@ -434,6 +445,58 @@ class _SanidadView extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Control de Sanidad',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D3436),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text('Gestión de mortalidad, tratamientos y vacunación.'),
+          const SizedBox(height: 30),
+
+          _buildActionCard(
+            context,
+            title: 'Registrar Mortandad (CU13)',
+            description: 'Reportar bajas de aves en el galpón.',
+            icon: Icons.dangerous_outlined,
+            color: Colors.redAccent,
+            route: '/register_mortality',
+          ),
+          const SizedBox(height: 20),
+
+          _buildActionCard(
+            context,
+            title: 'Analizar Mortandad (CU14)',
+            description: 'Visualizar tasas y tendencias críticas.',
+            icon: Icons.analytics_outlined,
+            color: Colors.purple,
+            route: '/mortality_analysis',
+          ),
+          const SizedBox(height: 20),
+
+          _buildActionCard(
+            context,
+            title: 'Registrar Tratamientos',
+            description: 'Registrar y visualizar actividades sanitarias.',
+            icon: Icons.vaccines,
+            color: Colors.teal,
+            route: '/sanidad_activities',
+          ),
+        ],
       ),
     );
   }
