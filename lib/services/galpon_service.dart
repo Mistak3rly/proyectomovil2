@@ -1,23 +1,30 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:movil_avicola/config/envs.dart';
-import 'package:movil_avicola/models/user_model.dart';
+import 'package:movil_avicola/models/galpon_model.dart';
+import 'auth_service.dart';
 
 class GalponService {
-  final String _baseUrl = Envs.baseUrl; 
-  Future<Usuario?> login(String username, String password) async {
-    await Future.delayed(const Duration(seconds: 1));
+  final String _baseUrl = Envs.baseUrl;
+  final AuthService _authService = AuthService();
 
-    if (username == 'juan' && password == '12345') {
-      return Usuario(
-        id: 999,
-        nomUsuario: 'juan',
-        email: 'juan@admin.com',
-        tipoUsuario: 'OPERADOR',
-        estado: 'ACTIVO',
-      );
-    }
-    return null;
+  Future<Map<String, String>> _headers() async {
+    final token = await _authService.getToken();
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
   }
 
+  Future<List<GalponModel>> getGalpones() async {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/galpones/'),
+      headers: await _headers(),
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+      return data.map((j) => GalponModel.fromJson(j)).toList();
+    }
+    throw Exception('Error al obtener galpones: ${response.statusCode}');
+  }
 }

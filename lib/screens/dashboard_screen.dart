@@ -379,6 +379,17 @@ class _SanidadView extends StatelessWidget {
             color: Colors.teal,
             route: '/sanidad_activities',
           ),
+          const SizedBox(height: 16),
+
+          _buildActionCard(
+            context,
+            title: 'Enfermedades por Lote (CU15)',
+            description:
+                'Registrar y consultar enfermedades detectadas en lotes.',
+            icon: Icons.coronavirus_outlined,
+            color: Colors.red,
+            route: '/registro_enfermedad',
+          ),
         ],
       ),
     );

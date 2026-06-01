@@ -7,15 +7,13 @@ import 'package:movil_avicola/screens/register_mortality_screen.dart';
 import 'package:movil_avicola/screens/mortality_analysis_screen.dart';
 import 'package:movil_avicola/screens/sanidad_activities_screen.dart';
 import 'package:movil_avicola/screens/voice_reports_screen.dart';
+import 'package:movil_avicola/screens/registro_enfermedad_screen.dart';
 import 'package:movil_avicola/screens/registrar_crecimiento_screen.dart';
 
 final router = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const LoginScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/dashboard',
       builder: (context, state) => const DashboardScreen(),
@@ -39,6 +37,10 @@ final router = GoRouter(
     GoRoute(
       path: '/sanidad_activities',
       builder: (context, state) => const SanidadActivitiesScreen(),
+    ),
+    GoRoute(
+      path: '/registro_enfermedad',
+      builder: (context, state) => const RegistroEnfermedadScreen(),
     ),
     GoRoute(
       path: '/voice_reports',
